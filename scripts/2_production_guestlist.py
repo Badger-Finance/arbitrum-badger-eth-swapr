@@ -31,10 +31,10 @@ def main():
     """
 
     # NOTE: Input your vault address and guestlist parameters below:
-    vaultAddr = "0x1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a"
-    merkleRoot = "0x1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a"
-    userCap = 2e18
-    totalCap = 50e18
+    vaultAddr = "0xE9C12F06F8AFFD8719263FE4a81671453220389c"
+    merkleRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"
+    userCap = 2 ** 256 - 1
+    totalCap = 3040334965383509340000
 
     # Get deployer account from local keystore. Deployer must be the
     # vault's governance address in order to set its guestlist parameters.
@@ -63,8 +63,8 @@ def main():
     assert guestlist.guestRoot() == merkleRoot
 
     # Transfers ownership of guestlist to Badger Governance
-    guestlist.transferOwnership(governance, {"from": dev})
-    assert guestlist.owner() == governance
+    # guestlist.transferOwnership(governance, {"from": dev})
+    # assert guestlist.owner() == governance
 
     # Sets guestlist on Vault (Requires dev == Vault's governance)
     vault = SettV4.at(vaultAddr)
@@ -74,7 +74,7 @@ def main():
 def deploy_guestlist(dev, proxyAdmin, vaultAddr):
 
     guestlist_logic = VipCappedGuestListWrapperUpgradeable.at(
-        "0x90A768B0bFF5e4e64f220832fc34f727CCE44d64"
+        "0x6DC573500b689f7972D5544809ae2DFC5CF143B5"
     )  # Guestlist Logic
 
     # Initializing arguments
@@ -85,6 +85,7 @@ def deploy_guestlist(dev, proxyAdmin, vaultAddr):
         proxyAdmin,
         guestlist_logic.initialize.encode_input(*args),
         {"from": dev},
+        publish_source=True,
     )
     time.sleep(sleep_between_tx)
 
