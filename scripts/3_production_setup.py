@@ -124,14 +124,14 @@ def set_parameters(dev, strategy, vault, governance, guardian, keeper, controlle
 
     console.print("[green]Strategist existing or set at: [/green]", governance)
 
-    if strategy.governance() != governance:
-        strategy.setGovernance(governance, {"from": dev})
-        time.sleep(sleep_between_tx)
-    if vault.governance() != governance:
-        vault.setGovernance(governance, {"from": dev})
-        time.sleep(sleep_between_tx)
+    # if strategy.governance() != governance:
+    #     strategy.setGovernance(governance, {"from": dev})
+    #     time.sleep(sleep_between_tx)
+    # if vault.governance() != governance:
+    #     vault.setGovernance(governance, {"from": dev})
+    #     time.sleep(sleep_between_tx)
 
-    console.print("[green]Governance existing or set at: [/green]", governance)
+    # console.print("[green]Governance existing or set at: [/green]", governance)
 
 
 def check_parameters(
@@ -154,8 +154,8 @@ def check_parameters(
     assert strategy.guardian() == guardian
     assert vault.guardian() == guardian
     assert strategy.strategist() == governance
-    assert strategy.governance() == governance
-    assert vault.governance() == governance
+    # assert strategy.governance() == governance
+    # assert vault.governance() == governance
 
     # Not all strategies use the badgerTree
     try:
