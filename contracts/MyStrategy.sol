@@ -13,7 +13,9 @@ import "../interfaces/badger/IController.sol";
 import "../interfaces/badger/ISett.sol";
 
 import {IUniswapRouterV2} from "../interfaces/uniswap/IUniswapRouterV2.sol";
-import {IERC20StakingRewardsDistribution} from "../interfaces/swapr/IERC20StakingRewardsDistribution.sol";
+import {
+    IERC20StakingRewardsDistribution
+} from "../interfaces/swapr/IERC20StakingRewardsDistribution.sol";
 
 import {BaseStrategy} from "../deps/BaseStrategy.sol";
 
@@ -82,7 +84,6 @@ contract MyStrategy is BaseStrategy {
         withdrawalFee = _feeConfig[2];
 
         /// @notice initial staking contract at time of development
-        /// TODO/NOTE: CHANGE BEFORE FINAL DEPLOYMENT
         stakingContract = 0x42253C7E9B59a9d6aC0e2f971927a2b89Ed57657;
 
         /// @dev do one off approvals here
@@ -204,8 +205,22 @@ contract MyStrategy is BaseStrategy {
 
     /// @dev utility function to withdraw everything for migration
     function _withdrawAll() internal override {
-        // Withdraws all and claims rewards
-        IERC20StakingRewardsDistribution(stakingContract).exit(address(this));
+        IERC20StakingRewardsDistribution _stakingContract =
+            IERC20StakingRewardsDistribution(stakingContract);
+
+        uint256[] memory rewards =
+            _stakingContract.claimableRewards(address(this));
+        for (uint256 i; i < rewards.length; i++) {
+            if (rewards[i] > 0) {
+                // Withdraws all and claims rewards
+                _stakingContract.exit(address(this));
+                return;
+            }
+        }
+        // Withdraws all without claiming rewards
+        _stakingContract.withdraw(
+            _stakingContract.stakedTokensOf(address(this))
+        );
     }
 
     /// @dev withdraw the specified amount of want, liquidate from lpComponent to want, paying off any necessary debt for the conversion
@@ -245,20 +260,17 @@ contract MyStrategy is BaseStrategy {
         // Swap to LP
         _swapRewardsToLP();
 
-        uint256 toEmit = IERC20Upgradeable(WETH_SWAPR_LP).balanceOf(
-            address(this)
-        );
+        uint256 toEmit =
+            IERC20Upgradeable(WETH_SWAPR_LP).balanceOf(address(this));
         if (toEmit > 0) {
             // Performance fee to strategist
-            uint256 toStrategist = toEmit.mul(performanceFeeStrategist).div(
-                MAX_FEE
-            );
+            uint256 toStrategist =
+                toEmit.mul(performanceFeeStrategist).div(MAX_FEE);
             HELPER_VAULT.depositFor(strategist, toStrategist);
 
             // Performance fee to governance
-            uint256 toGovernance = toEmit.mul(performanceFeeGovernance).div(
-                MAX_FEE
-            );
+            uint256 toGovernance =
+                toEmit.mul(performanceFeeGovernance).div(MAX_FEE);
             HELPER_VAULT.depositFor(
                 IController(controller).rewards(),
                 toGovernance
@@ -266,9 +278,8 @@ contract MyStrategy is BaseStrategy {
 
             // NOTE: Would be better to take fees as HELPER_VAULT as they autocompound for treasury
             uint256 treeBefore = HELPER_VAULT.balanceOf(badgerTree);
-            uint256 toTree = IERC20Upgradeable(WETH_SWAPR_LP).balanceOf(
-                address(this)
-            );
+            uint256 toTree =
+                IERC20Upgradeable(WETH_SWAPR_LP).balanceOf(address(this));
             HELPER_VAULT.depositFor(badgerTree, toTree);
             uint256 treeAfter = HELPER_VAULT.balanceOf(badgerTree);
             uint256 emitted = treeAfter.sub(treeBefore);

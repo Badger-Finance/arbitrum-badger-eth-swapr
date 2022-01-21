@@ -21,4 +21,9 @@ interface IERC20StakingRewardsDistribution {
 
     /// @dev Timestamp when staking is enabled
     function startingTimestamp() external view returns (uint256);
+
+    function claimableRewards(address _account)
+        external
+        view
+        returns (uint256[] memory);
 }
