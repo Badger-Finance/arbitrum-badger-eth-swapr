@@ -44,7 +44,10 @@ def test_upgrade(accounts, interface, strat_proxy, proxy_admin):
 
     ## Upgrade
     new_logic = MyStrategy.deploy({"from": deployer})
-    proxy_admin.upgrade(strat_proxy, new_logic, {"from": proxy_admin.owner()})
+    owner = proxy_admin.owner()
+    proxy_admin.upgrade(strat_proxy, new_logic, {"from": owner})
+    print(f"Proxy admin: {proxy_admin.address}")
+    print(f"Proxy admin owner: {owner}")
 
     ## Verify storage layout
     assert strat_proxy.lpComponent() == lpComponent
