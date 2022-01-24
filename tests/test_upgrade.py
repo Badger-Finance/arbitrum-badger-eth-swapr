@@ -30,14 +30,26 @@ def test_upgrade(accounts, interface, strat_proxy, proxy_admin):
         assert amount == 0
 
     # Verify that withdrawAll is failing
+    strat_pool_balance = strat_proxy.balanceOfPool()
     strat_balance = strat_proxy.balanceOf()
     vault_balance = want.balanceOf(vault)
-    assert strat_proxy.balanceOfPool() > 0
+
+    assert strat_pool_balance > 0
 
     with brownie.reverts("SRD23"):
         strat_proxy.withdrawAll({"from": controller})
 
     ## Storage layout
+    governance = strat_proxy.governance()         
+    strategist = strat_proxy.strategist()
+    keeper = strat_proxy.keeper()
+
+    performanceFeeGovernance = strat_proxy.performanceFeeGovernance()
+    performanceFeeStrategist = strat_proxy.performanceFeeStrategist()
+    withdrawalFee = strat_proxy.withdrawalFee()
+    guardian = strat_proxy.guardian()
+    withdrawalMaxDeviationThreshold = strat_proxy.withdrawalMaxDeviationThreshold()
+
     lpComponent = strat_proxy.lpComponent()
     reward = strat_proxy.reward()
     stakingContract = strat_proxy.stakingContract()
@@ -50,9 +62,24 @@ def test_upgrade(accounts, interface, strat_proxy, proxy_admin):
     print(f"Proxy admin owner: {owner}")
 
     ## Verify storage layout
-    assert strat_proxy.lpComponent() == lpComponent
-    assert strat_proxy.reward() == reward
-    assert strat_proxy.stakingContract() == stakingContract
+    assert governance == strat_proxy.governance()         
+    assert strategist == strat_proxy.strategist()
+    assert keeper == strat_proxy.keeper()
+
+    assert want.address == strat_proxy.want()
+    assert performanceFeeGovernance == strat_proxy.performanceFeeGovernance()
+    assert performanceFeeStrategist == strat_proxy.performanceFeeStrategist()
+    assert withdrawalFee == strat_proxy.withdrawalFee()
+    assert controller.address == strat_proxy.controller()
+    assert guardian == strat_proxy.guardian()
+    assert withdrawalMaxDeviationThreshold == strat_proxy.withdrawalMaxDeviationThreshold()
+
+    assert lpComponent == strat_proxy.lpComponent()
+    assert reward == strat_proxy.reward()
+    assert stakingContract == strat_proxy.stakingContract()
+
+    assert strat_balance == strat_proxy.balanceOf()
+    assert strat_pool_balance == strat_proxy.balanceOfPool()
 
     # Check withdrawAll works
     strat_proxy.withdrawAll({"from": controller})
